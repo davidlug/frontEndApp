@@ -1,0 +1,21 @@
+.scheduleTable {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.scheduleTable th,
+.tabscheduleTablele td {
+    border: 1px solid rgb(228, 130, 18);
+    padding: 8px;
+}
+
+.scheduleTable th {
+    background-color: #f2f2f2;
+}
+
+.divider {
+    background-color: #f2f2f2;
+    text-align: center;
+    font-weight: bold;
+}
+

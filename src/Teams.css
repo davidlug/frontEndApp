@@ -1,0 +1,74 @@
+.homePage {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+ 
+table {
+    border: 2px solid rgb(228, 130, 18);
+    width: 1000px;
+    height: 200px;
+}
+ 
+th {
+    border-bottom: 1px solid rgb(228,130,18);
+}
+
+.matrix {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.matrix th, .matrix td {
+    border: 1px solid black;
+    text-align: center;
+    padding: 8px;
+}
+
+.matrix th {
+    background-color: #f2f2f2;
+}
+
+.matrix td:first-child {
+    font-weight: bold;
+    background-color: #f9f9f9;
+}
+
+.schedules {
+    display:flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.exportButton {
+    gap: 10px;
+}
+
+ 
+td {
+    text-align: center;
+}
+
+.schedule-balance-column {
+    width: 350px; /* Adjust the width as needed */
+  }
+
+  .scheduleAnalysisElement {
+    float: left;
+}
+  
+  /* table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    padding: 8px;
+    text-align: left;
+  }
+  
+  th.schedule-balance-column, td.schedule-balance-column {
+    text-align: center;
+  } */
