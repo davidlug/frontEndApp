@@ -24,7 +24,7 @@ const WeightNumberLine = ({ value, min, max }) => {
         onChange={(e) => setSliderValue(e.target.value)}
 
       />
-      <circle cx={position} cy="10" r="3" fill="rgb(228, 130, 18)" />
+      <circle cx={position} cy="10" r="3" fill='#FA8223' />
     </svg>
   );
 };

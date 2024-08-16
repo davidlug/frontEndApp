@@ -7,19 +7,19 @@
 }
  
 table {
-    border: 2px solid rgb(228, 130, 18);
+    border: 2px solid '#FA8223';
     width: 800px;
     height: 200px;
 }
 
 table2 {
-    border: 2px solid rgb(228, 130, 18);
+    border: 2px solid '#FA8223';
     width: 800px;
     height: 200px;
 }
  
 th {
-    border-bottom: 1px solid rgb(228,130,18);
+    border-bottom: 1px solid '#FA8223';
 }
  
 td {

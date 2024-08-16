@@ -16,7 +16,7 @@ const TeamCreate = () => {
         e.preventDefault();
         const teamData = { teamName, Players, Division, gamesPlayed, late };
         console.log("Submitted data: " + JSON.stringify(teamData));
-        fetch(`/league/${leagueID}/division/${divisionID}/team`, {
+        fetch(`http://localhost:8080/league/${leagueID}/division/${divisionID}/team`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(teamData)

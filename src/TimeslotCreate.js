@@ -65,7 +65,7 @@ const TimeSlotCreate = () => {
 
         const timeslotData = { week, date: formattedDate, startTime, endTime, facility, rink, additionalData, extra };
         console.log("Submitted data: ", timeslotData);
-        fetch(`/league/${leagueID}/division/${divisionID}/timeslot`, {
+        fetch(`http://localhost:8080/league/${leagueID}/division/${divisionID}/timeslot`, {
             method: "POST",
             headers: { "Content-type": "application/json" },
             body: JSON.stringify(timeslotData)

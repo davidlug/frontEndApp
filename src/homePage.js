@@ -8,16 +8,12 @@ const HomePage = () => {
     const [leagueData, setLeagueData] = useState(null);
     const navigate = useNavigate();
 
-    const LoadDetail = (id) => {
-        navigate("/league/detail" + id);
-    }
-
     const LoadEdit = (id) => {
         navigate(`/league/${id}`);
     }
 
     useEffect(() => {
-        fetch("/leagues").then((res) => {
+        fetch("http://localhost:8080/leagues").then((res) => {
             return res.json();
         }).then((resp) => {
             setLeagueData(resp);
@@ -25,6 +21,19 @@ const HomePage = () => {
             console.log(err.message);
         });
     }, []);
+
+    const RemoveLeague = (leagueID, leagueName) => {
+        if (window.confirm("Do you want to delete " + leagueName + "?")) {
+            fetch(`http://localhost:8080/league/${leagueID}`, {
+                method: "DELETE",
+            }).then((res) => {
+                alert("Division deleted successfully.");
+                window.location.reload();
+            }).catch((err) => {
+                console.log(err.message);
+            });
+        }
+    };
 
     return (
 
@@ -41,8 +50,10 @@ const HomePage = () => {
                         leagueData.leagues.map(item => (
                             <tr key={item.id}>
                                 <td>{item.league}</td>
-                                <td>{item.divisions ? item.divisions.length : 0}</td>  {/* Display the number of teams */}
-                                <td><a onClick={() => { LoadEdit(item.id) }} className="btn btn-success">View League</a></td>
+                                <td>{item.divisions ? item.divisions.length : 0}</td> 
+                                <td><a onClick={() => { LoadEdit(item.id) }} className="btn btn-success">View League</a>
+                                <a onClick={() => { RemoveLeague(item.id, item.league) }} className="btn btn-danger">Delete</a>
+                                </td>
                             </tr>
                         ))
                     ) : (

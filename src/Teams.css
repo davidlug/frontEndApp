@@ -5,15 +5,18 @@
     justify-content: center;
     align-items: center;
 }
- 
+
+/* Responsive Table Styling */
 table {
-    border: 2px solid rgb(228, 130, 18);
-    width: 1000px;
+    border: 2px solid #FA8223;
+    width: 100%; /* Make the table width responsive */
+    max-width: 1200px; /* Limit the maximum width */
     height: 200px;
+    overflow-x: auto; /* Allow horizontal scrolling if needed */
 }
- 
+
 th {
-    border-bottom: 1px solid rgb(228,130,18);
+    border-bottom: 1px solid #FA8223;
 }
 
 .matrix {
@@ -37,7 +40,7 @@ th {
 }
 
 .schedules {
-    display:flex;
+    display: flex;
     flex-direction: row;
     gap: 10px;
 }
@@ -46,29 +49,33 @@ th {
     gap: 10px;
 }
 
- 
 td {
     text-align: center;
 }
 
 .schedule-balance-column {
-    width: 350px; /* Adjust the width as needed */
-  }
+    width: 100%; /* Make the width responsive */
+    max-width: 350px; /* Limit the maximum width as needed */
+}
 
-  .scheduleAnalysisElement {
+.scheduleAnalysisElement {
     float: left;
 }
-  
-  /* table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  th, td {
-    padding: 8px;
-    text-align: left;
-  }
-  
-  th.schedule-balance-column, td.schedule-balance-column {
-    text-align: center;
-  } */
+
+/* Media Queries for Smaller Screens */
+@media only screen and (max-width: 768px) {
+    table {
+        width: 100%; /* Table takes full width */
+        height: auto; /* Let the height adjust dynamically */
+        max-width: 100%; /* Ensure the table doesn’t exceed the screen width */
+    }
+
+    .schedule-balance-column {
+        width: 100%; /* Make the column width flexible */
+    }
+
+    .schedules {
+        flex-direction: column; /* Stack elements vertically */
+        gap: 20px;
+    }
+}

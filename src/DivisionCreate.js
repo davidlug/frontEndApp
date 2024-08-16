@@ -12,7 +12,7 @@ const DivisionCreate = () => {
         e.preventDefault();
         const divisionData = { divisionName, teams };
         console.log("Submitted data: ", divisionData);
-        fetch(`/leagues/${id}/division`, {
+        fetch(`http://localhost:8080/leagues/${id}/division`, {
             method: "POST",
             headers: { "Content-type": "application/json" },
             body: JSON.stringify(divisionData)
@@ -46,7 +46,7 @@ const DivisionCreate = () => {
                     <form className="container" onSubmit={handleSubmit}>
                         <div className="card" style={{ textAlign: "left" }}>
                             <div className="card-title">
-                                <h2>Choose Division</h2>
+                                <h2>Create Division</h2>
                             </div>
                             <div className="card-body">
                                 <div className="row">

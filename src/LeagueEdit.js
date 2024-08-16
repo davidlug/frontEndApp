@@ -5,13 +5,12 @@ import lugLogo from './lugLogo.png';
 
 const LeagueEdit = () => {
     const { id } = useParams();
-
     const [divisionData, setDivisionData] = useState([]);
     const [leagueName, setLeagueName] = useState("");
     const navigate = useNavigate();
     
     useEffect(() => {
-        fetch(`/divisions/${id}`)
+        fetch(`http://localhost:8080/divisions/${id}`)
             .then((res) => res.json())
             .then((resp) => {
                 setDivisionData(resp.divisions);
@@ -21,6 +20,19 @@ const LeagueEdit = () => {
                 console.log(err.message);
             });
     }, [id]);
+
+    const RemoveDivision = (leagueID, divisionID, divisionName) => {
+        if (window.confirm("Do you want to delete " + divisionName + "?")) {
+            fetch(`http://localhost:8080/leagues/${leagueID}/divisions/${divisionID}`, {
+                method: "DELETE",
+            }).then((res) => {
+                alert("Division deleted successfully.");
+                window.location.reload();
+            }).catch((err) => {
+                console.log(err.message);
+            });
+        }
+    };
 
     return (
         <div style={{ position: 'relative', alignItems: 'center', top: '20%', display: 'flex', flexDirection: 'column', textAlign: 'center' }}>
@@ -41,6 +53,7 @@ const LeagueEdit = () => {
                                 <td>{division.teams ? division.teams.length : 0}</td>  
                                 <td>
                                 <button onClick={() => navigate(`/league/${id}/division/${division.divisionID}/teams`)} className="btn btn-success">View Division</button>
+                                <a onClick={() => { RemoveDivision(id, division.divisionID, division.divisionName) }} className="btn btn-danger">Delete</a>
                                 </td>
                             </tr>
                         ))
