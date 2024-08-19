@@ -13,7 +13,7 @@ const HomePage = () => {
     }
 
     useEffect(() => {
-        fetch("http://localhost:8080/leagues").then((res) => {
+        fetch("http://99.79.47.21:8080/leagues").then((res) => {
             return res.json();
         }).then((resp) => {
             setLeagueData(resp);
@@ -24,7 +24,7 @@ const HomePage = () => {
 
     const RemoveLeague = (leagueID, leagueName) => {
         if (window.confirm("Do you want to delete " + leagueName + "?")) {
-            fetch(`http://localhost:8080/league/${leagueID}`, {
+            fetch(`http://99.79.47.21:8080/league/${leagueID}`, {
                 method: "DELETE",
             }).then((res) => {
                 alert("Division deleted successfully.");

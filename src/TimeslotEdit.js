@@ -20,7 +20,7 @@ const TimeslotEdit = () => {
     const [validation, setValidation] = useState(false);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/league/${leagueID}/Division/${divisionID}/timeslot/${timeslotID}`)
+        fetch(`http://99.79.47.21:8080/league/${leagueID}/Division/${divisionID}/timeslot/${timeslotID}`)
             .then((res) => res.json())
             .then((resp) => {
                 weekChange(resp.timeslot.week);
@@ -61,7 +61,7 @@ const TimeslotEdit = () => {
             lateGame 
         };
 
-        fetch(`http://localhost:8080/league/${leagueID}/Division/${divisionID}/timeslot/${timeslotID}`, {
+        fetch(`http://99.79.47.21:8080/league/${leagueID}/Division/${divisionID}/timeslot/${timeslotID}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(teamData)

@@ -117,7 +117,7 @@ const TeamsView = () => {
 
     const saveSchedule = () => {
         localStorage.setItem('savedSchedule', JSON.stringify(editedSchedule));
-        fetch(`http://localhost:8080/league/${leagueID}/Division/${divisionID}/schedule`, {
+        fetch(`http://99.79.47.21:8080/league/${leagueID}/Division/${divisionID}/schedule`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(editedSchedule)
@@ -342,7 +342,7 @@ const TeamsView = () => {
             const sheet = workbook.Sheets[sheetName];
             const sheetData = XLSX.utils.sheet_to_json(sheet);
 
-            fetch(`http://localhost:8080/league/${leagueID}/division/${divisionID}/teams`, {
+            fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/teams`, {
                 method: "POST",
                 headers: { "Content-type": "application/json" },
                 body: JSON.stringify(sheetData)
@@ -420,7 +420,7 @@ const TeamsView = () => {
                 };
             });
 
-            fetch(`http://localhost:8080/league/${leagueID}/division/${divisionID}/timeslots`, {
+            fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/timeslots`, {
                 method: "POST",
                 headers: { "Content-type": "application/json" },
                 body: JSON.stringify(formattedData)
@@ -526,7 +526,7 @@ const TeamsView = () => {
     }, [generatedSchedule]);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/leagues/${leagueID}/divisions/${divisionID}/teams`)
+        fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}/teams`)
             .then((res) => res.json())
             .then((resp) => {
                 console.log(resp.divisionName + " division");
@@ -540,7 +540,7 @@ const TeamsView = () => {
     }, [leagueID, divisionID]);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/leagues/${leagueID}/divisions/${divisionID}/timeslots`)
+        fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}/timeslots`)
             .then((res) => res.json())
             .then((resp) => {
                 setTimeSlots(resp.timeslots || []);
@@ -553,7 +553,7 @@ const TeamsView = () => {
     }, [leagueID, divisionID]);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/league/${leagueID}/division/${divisionID}/schedules`)
+        fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/schedules`)
             .then((res) => res.json())
             .then((resp) => {
                 console.log("Schedules");
@@ -600,7 +600,7 @@ const TeamsView = () => {
 
     const RemoveTeam = (leagueID, divisionID, teamID, teamName) => {
         if (window.confirm("Do you want to delete " + teamName + "?")) {
-            fetch(`http://localhost:8080/leagues/${leagueID}/divisions/${divisionID}/teams/${teamID}`, {
+            fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}/teams/${teamID}`, {
                 method: "DELETE",
             }).then((res) => {
                 alert("Team deleted successfully.");
@@ -613,7 +613,7 @@ const TeamsView = () => {
 
     const RemoveTimeslot = (leagueID, divisionID, timeslotID) => {
         if (window.confirm("Do you want to delete this timeslot?")) {
-            fetch(`http://localhost:8080/leagues/${leagueID}/divisions/${divisionID}/timeslots/${timeslotID}`, {
+            fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}/timeslots/${timeslotID}`, {
                 method: "DELETE",
             }).then((res) => {
                 alert("Timeslot deleted successfully.");
@@ -668,7 +668,7 @@ const TeamsView = () => {
             const totalGames = numberOfGames[team.id] || 0;
 
             // // Fetch the updated weight from the server
-            // const response = await fetch(`http://localhost:8080/league/${leagueID}/division/${divisionID}/team/${team.id}/weight`);
+            // const response = await fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/team/${team.id}/weight`);
             // const data = await response.json();
             // const updatedWeight = data.weight;
 
@@ -679,7 +679,7 @@ const TeamsView = () => {
             return { ...team, numGames: totalGames/*, weight: updatedWeight*/ };
         }));
 
-        await fetch(`http://localhost:8080/league/${leagueID}/Division/${divisionID}/teams`, {
+        await fetch(`http://99.79.47.21:8080/league/${leagueID}/Division/${divisionID}/teams`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(updatedTeams)
@@ -687,8 +687,8 @@ const TeamsView = () => {
 
         console.log('Teams updated on the server');
 
-        console.log(`http://localhost:8080/league/${leagueID}/division/${divisionID}/schedule?freezeWeeks=${selectedWeeks}`);
-        fetch(`http://localhost:8080/league/${leagueID}/division/${divisionID}/schedule?freezeWeeks=${selectedWeeks}`)
+        console.log(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/schedule?freezeWeeks=${selectedWeeks}`);
+        fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/schedule?freezeWeeks=${selectedWeeks}`)
             .then((res) => res.json(),)
             .then((resp) => {
                 console.log('API response:', resp);

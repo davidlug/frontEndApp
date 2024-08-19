@@ -12,7 +12,7 @@ const DivisionCreate = () => {
         e.preventDefault();
         const divisionData = { divisionName, teams };
         console.log("Submitted data: ", divisionData);
-        fetch(`http://localhost:8080/leagues/${id}/division`, {
+        fetch(`http://99.79.47.21:8080/leagues/${id}/division`, {
             method: "POST",
             headers: { "Content-type": "application/json" },
             body: JSON.stringify(divisionData)
