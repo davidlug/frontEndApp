@@ -19,3 +19,17 @@
     font-weight: bold;
 }
 
+.warning-tooltip {
+    background-color: yellow;
+    border: 1px solid black;
+    padding: 2px 5px;
+    position: absolute;
+    z-index: 10;
+    white-space: nowrap;
+    left: 10px;
+    top: -5px;
+}
+
+.warning-icon {
+    position: relative;
+}

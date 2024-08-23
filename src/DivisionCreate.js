@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import './Divisions.css';
+import config from './config';
 
 const DivisionCreate = () => {
     const { id } = useParams(); // Get the league ID from the URL
@@ -12,7 +13,7 @@ const DivisionCreate = () => {
         e.preventDefault();
         const divisionData = { divisionName, teams };
         console.log("Submitted data: ", divisionData);
-        fetch(`http://99.79.47.21:8080/leagues/${id}/division`, {
+        fetch(`${config.apiBaseUrl}/leagues/${id}/division`, {
             method: "POST",
             headers: { "Content-type": "application/json" },
             body: JSON.stringify(divisionData)

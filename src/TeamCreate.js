@@ -1,5 +1,7 @@
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import { useState } from 'react';
+import config from './config';
+
 
 const TeamCreate = () => {
     const { leagueID, divisionID } = useParams();
@@ -16,7 +18,7 @@ const TeamCreate = () => {
         e.preventDefault();
         const teamData = { teamName, Players, Division, gamesPlayed, late };
         console.log("Submitted data: " + JSON.stringify(teamData));
-        fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/team`, {
+        fetch(`${config.apiBaseUrl}/league/${leagueID}/division/${divisionID}/team`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(teamData)

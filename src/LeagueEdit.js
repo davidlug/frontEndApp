@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import './Divisions.css';
 import lugLogo from './lugLogo.png';
+import config from './config';
+
 
 const LeagueEdit = () => {
     const { id } = useParams();
@@ -10,7 +12,7 @@ const LeagueEdit = () => {
     const navigate = useNavigate();
     
     useEffect(() => {
-        fetch(`http://99.79.47.21:8080/divisions/${id}`)
+        fetch(`${config.apiBaseUrl}/divisions/${id}`)
             .then((res) => res.json())
             .then((resp) => {
                 setDivisionData(resp.divisions);
@@ -23,7 +25,7 @@ const LeagueEdit = () => {
 
     const RemoveDivision = (leagueID, divisionID, divisionName) => {
         if (window.confirm("Do you want to delete " + divisionName + "?")) {
-            fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}`, {
+            fetch(`${config.apiBaseUrl}/leagues/${leagueID}/divisions/${divisionID}`, {
                 method: "DELETE",
             }).then((res) => {
                 alert("Division deleted successfully.");
@@ -36,8 +38,8 @@ const LeagueEdit = () => {
 
     return (
         <div style={{ position: 'relative', alignItems: 'center', top: '20%', display: 'flex', flexDirection: 'column', textAlign: 'center' }}>
-            <img src={lugLogo} width={250} alt="Lug Logo" />
-            <h1 style={{ marginTop: '25px' }}>{leagueName}</h1>
+<img src={lugLogo} width={250} style={{ marginTop: '10px' }} />
+<h1 style={{ marginTop: '25px' }}>{leagueName}</h1>
             <table>
                 <thead>
                     <tr>

@@ -14,18 +14,22 @@ import ExportAsExcel from 'react-export-table-to-excel'
 import InputNumber from 'rc-input-number';
 import NumberPicker from "react-widgets/NumberPicker";
 import WeightNumberLine from './WeightNumberLine';
+import config from './config';
 
 
 
 const TeamsView = () => {
     const { leagueID, divisionID } = useParams();
     const [divisionName, setDivisionName] = useState("");
+    const [undoScheduleValue, setUndoScheduleValue] = useState([])
     const [league, setLeagueName] = useState("");
     const [teams, setTeams] = useState([]);
     const navigate = useNavigate();
     const [timeslots, setTimeSlots] = useState([]);
     const [data, setData] = useState("");
     const [generatedSchedule, setGeneratedSchedule] = useState([]);
+    const [selectedScheduleIndex, setSelectedScheduleIndex] = useState(0);
+    const [scheduleGenerated, setScheduleGenerated] = useState(false);
     const [value, setValue] = useState(0.1);
     const [selectedWeeks, setSelectedWeeks] = useState([]); // State for selected weeks
     //const [loadSchedule, setLoadSchedule] = useState([]);
@@ -36,6 +40,10 @@ const TeamsView = () => {
     const [savedSchedule, setSavedSchedule] = useState([]);
     //var backupSchedule = [];
     const [backupSchedule, setBackupSchedule] = useState([]);
+    const [scheduleHistory, setScheduleHistory] = useState([]);
+    const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0);
+    const [warningMessage, setWarningMessage] = useState(null);
+
     const [numberOfGames, setNumberOfGames] = useState({});
     const customHeaders = [
         "Number",
@@ -53,36 +61,25 @@ const TeamsView = () => {
 
     const trackTimeslotData = (team, header) => {
         let returnValue = 0;
-        console.log("Input header "+header);
 
-        if(savedSchedule == null)
-        {
+        if (savedSchedule == null) {
             return 0;
         }
-        for(let i = 0; i < savedSchedule.length; i++)
-        {
-            for(let j = 0; j < savedSchedule[i].length; j++)
-            {
-                if(savedSchedule[i][j].match.homeTeam.teamName == team.teamName || savedSchedule[i][j].match.awayTeam.teamName == team.teamName)
-                {
+        for (let i = 0; i < savedSchedule.length; i++) {
+            for (let j = 0; j < savedSchedule[i].length; j++) {
+                if (savedSchedule[i][j].match.homeTeam.teamName == team.teamName || savedSchedule[i][j].match.awayTeam.teamName == team.teamName) {
                     let additionalDataObject = savedSchedule[i][j].additionalData
-                    console.log(i+" "+j);
-                    console.log(additionalDataObject.length);
-                    for(let p = 0; p < additionalDataObject.length; p++)
-                    {
-                        console.log("Compare "+additionalDataObject[p][Object.keys(additionalDataObject[p])])
-                        if(Object.keys(additionalDataObject[p]) == header)
-                        {
-                            
-                            if(additionalDataObject[p][Object.keys(additionalDataObject[p])] == "Yes")
-                            {
-                                console.log("Detected");
+
+                    for (let p = 0; p < additionalDataObject.length; p++) {
+                        if (Object.keys(additionalDataObject[p]) == header) {
+
+                            if (additionalDataObject[p][Object.keys(additionalDataObject[p])] == "Yes") {
                                 returnValue++;
                             }
                         }
                     }
                 }
-                
+
             }
         }
         return returnValue;
@@ -97,18 +94,22 @@ const TeamsView = () => {
             team.id === teamId ? { ...team, numGames: value } : team
         ));
 
-        console.log("New teams with num");
-        console.log(teams);
+
     };
 
+
     const handleEditClick = () => {
+
         if (isEditing) {
             saveSchedule();
+            console.log("Old Schedule");
+            console.log(undoScheduleValue);
             window.location.reload();
 
         }
         else {
             console.log("!isEditing");
+            setUndoScheduleValue(savedSchedule);
             console.log(savedSchedule);
             // setGeneratedSchedule([...savedSchedule]);
         }
@@ -116,8 +117,10 @@ const TeamsView = () => {
     };
 
     const saveSchedule = () => {
+        console.log("Old Schedule");
+        console.log(undoScheduleValue);
         localStorage.setItem('savedSchedule', JSON.stringify(editedSchedule));
-        fetch(`http://99.79.47.21:8080/league/${leagueID}/Division/${divisionID}/schedule`, {
+        fetch(`${config.apiBaseUrl}/league/${leagueID}/Division/${divisionID}/schedule`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(editedSchedule)
@@ -144,7 +147,6 @@ const TeamsView = () => {
                     editedSchedule.forEach(week => {
                         week.forEach(timeslot => {
                             if (timeslot.match) {
-                                console.log(timeslot.match);
                                 const homeTeam = timeslot.match.homeTeam.teamName;
                                 const awayTeam = timeslot.match.awayTeam.teamName;
 
@@ -155,14 +157,11 @@ const TeamsView = () => {
                         });
                     });
 
-                    console.log("Edited " + team.teamName);
-                    console.log(gamesPlayedCount);
+
                     team.gamesPlayed = gamesPlayedCount;
 
 
                     const totalWeight = teamWeights[team.teamName] || 0;
-                    console.log("saveSchedule totalWeight");
-                    console.log(totalWeight);
 
 
 
@@ -178,8 +177,8 @@ const TeamsView = () => {
             });
 
 
-
     }
+
 
     const handleCancelClick = () => {
         console.log("Original Schedule");
@@ -342,7 +341,7 @@ const TeamsView = () => {
             const sheet = workbook.Sheets[sheetName];
             const sheetData = XLSX.utils.sheet_to_json(sheet);
 
-            fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/teams`, {
+            fetch(`${config.apiBaseUrl}/league/${leagueID}/division/${divisionID}/teams`, {
                 method: "POST",
                 headers: { "Content-type": "application/json" },
                 body: JSON.stringify(sheetData)
@@ -420,7 +419,7 @@ const TeamsView = () => {
                 };
             });
 
-            fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/timeslots`, {
+            fetch(`${config.apiBaseUrl}/league/${leagueID}/division/${divisionID}/timeslots`, {
                 method: "POST",
                 headers: { "Content-type": "application/json" },
                 body: JSON.stringify(formattedData)
@@ -525,11 +524,93 @@ const TeamsView = () => {
         console.log(teams);
     }, [generatedSchedule]);
 
+
+
+    // useEffect(() => {
+    //     if (scheduleGenerated) { // Only run effect if a schedule has been generated
+    //         fetch(`${config.apiBaseUrl}/league/${leagueID}/division/${divisionID}/schedule/${selectedScheduleIndex}`)
+    //             .then((res) => res.json())
+    //             .then((resp) => {
+    //                 console.log('API response:', resp);
+    //                 if (!resp || !Array.isArray(resp.schedule)) {
+    //                     console.error('Unexpected response format:', resp);
+    //                     return;
+    //                 }
+    //                 const updatedSchedule = resp.schedule;
+    //                 console.log("Updated Schedule:", updatedSchedule);
+
+    //                 setGeneratedSchedule(updatedSchedule);
+
+    //                 // Call the custom method after setting the schedule
+    //                 processSchedule(updatedSchedule);
+
+    //                 fetch(`${config.apiBaseUrl}/league/${leagueID}/Division/${divisionID}/schedule`, {
+    //                     method: "PUT",
+    //                     headers: { "Content-Type": "application/json" },
+    //                     body: JSON.stringify(updatedSchedule)
+    //                 })
+    //                     .then((res) => {
+    //                         if (!res.ok) {
+    //                             throw new Error('Network response was not ok');
+    //                         }
+    //                         return res.json();
+    //                     })
+    //                     .then(() => {
+    //                         setSavedSchedule(updatedSchedule);
+    //                         setBackupSchedule(JSON.parse(JSON.stringify(updatedSchedule)));
+
+    //                         const teamWeights = {};
+    //                         teams.forEach(team => {
+    //                             teamWeights[team.teamName] = team.weight;
+    //                         });
+
+    //                         // Recalculate games played and weights for each team
+    //                         const updatedTeams = teams.map(team => {
+    //                             let gamesPlayedCount = 0;
+
+    //                             editedSchedule.forEach(week => {
+    //                                 week.forEach(timeslot => {
+    //                                     if (timeslot.match) {
+    //                                         const homeTeam = timeslot.match.homeTeam.teamName;
+    //                                         const awayTeam = timeslot.match.awayTeam.teamName;
+
+    //                                         if (homeTeam === team.teamName || awayTeam === team.teamName) {
+    //                                             gamesPlayedCount++;
+    //                                         }
+    //                                     }
+    //                                 });
+    //                             });
+
+
+    //                             team.gamesPlayed = gamesPlayedCount;
+
+
+    //                             const totalWeight = teamWeights[team.teamName] || 0;
+
+
+
+    //                             return { ...team, gamesPlayed: gamesPlayedCount, weight: totalWeight };
+    //                         });
+
+    //                         //setTeams(updatedTeams);
+    //                         //console.log(updatedTeams);
+
+    //                     })
+    //                     .catch((err) => {
+    //                         console.log("Error saving team data:", err);
+    //                     });
+    //             })
+    //             .catch((error) => {
+    //                 console.error('Error fetching schedule:', error);
+    //             });
+    //     }
+    // }, [selectedScheduleIndex, scheduleGenerated, leagueID, divisionID]);
     useEffect(() => {
-        fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}/teams`)
+        fetch(`${config.apiBaseUrl}/leagues/${leagueID}/divisions/${divisionID}/teams`)
             .then((res) => res.json())
             .then((resp) => {
-                console.log(resp.divisionName + " division");
+                console.log("Returned division 621");
+                console.log(resp);
                 setDivisionName(resp.divisionName);
                 setLeagueName(resp.leagueName);
                 setTeams(resp.teams || []);
@@ -539,8 +620,9 @@ const TeamsView = () => {
             });
     }, [leagueID, divisionID]);
 
+
     useEffect(() => {
-        fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}/timeslots`)
+        fetch(`${config.apiBaseUrl}/leagues/${leagueID}/divisions/${divisionID}/timeslots`)
             .then((res) => res.json())
             .then((resp) => {
                 setTimeSlots(resp.timeslots || []);
@@ -553,20 +635,43 @@ const TeamsView = () => {
     }, [leagueID, divisionID]);
 
     useEffect(() => {
-        fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/schedules`)
+        console.log("Old Schedule");
+        console.log(undoScheduleValue);
+    }, [undoScheduleValue])
+
+    useEffect(() => {
+        fetch(`${config.apiBaseUrl}/league/${leagueID}/division/${divisionID}/schedules`)
             .then((res) => res.json())
             .then((resp) => {
                 console.log("Schedules");
                 console.log(resp.schedule);
+                console.log("Schedule history");
+                //console.log(resp.scheduleHistory);
+                //setScheduleHistory(resp.scheduleHistory);
                 //setLoadSchedule(resp.schedule || []);
                 setGeneratedSchedule(resp.schedule)
                 setSavedSchedule(resp.schedule);
                 setBackupSchedule(JSON.parse(JSON.stringify(resp.schedule)) || []);
+
             })
             .catch((err) => {
                 console.log(err.message);
             });
     }, [leagueID, divisionID]);
+
+    // useEffect(() => {
+    //     fetch(`${config.apiBaseUrl}/leagues/${leagueID}/divisions/${divisionID}/schedules`)
+    //         .then((res) => res.json())
+    //         .then((data) => {
+    //             console.log("648")
+    //             console.log(data)
+
+    //             setScheduleGenerated(true);
+    //             setCurrentScheduleIndex(data.lastAccessedSchedule); // Store the last accessed schedule index
+    //         })
+    //         .catch(
+    //             (err) => console.error("Error fetching schedule history:", err));
+    // }, [leagueID, divisionID]);
 
     useEffect(() => {
         console.log("Backup Schedule");
@@ -598,9 +703,14 @@ const TeamsView = () => {
         });
     };
 
+    const processSchedule = (schedule) => {
+        console.log("Processing schedule:", schedule);
+        // Add your custom logic here
+    };
+
     const RemoveTeam = (leagueID, divisionID, teamID, teamName) => {
         if (window.confirm("Do you want to delete " + teamName + "?")) {
-            fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}/teams/${teamID}`, {
+            fetch(`${config.apiBaseUrl}/leagues/${leagueID}/divisions/${divisionID}/teams/${teamID}`, {
                 method: "DELETE",
             }).then((res) => {
                 alert("Team deleted successfully.");
@@ -613,7 +723,7 @@ const TeamsView = () => {
 
     const RemoveTimeslot = (leagueID, divisionID, timeslotID) => {
         if (window.confirm("Do you want to delete this timeslot?")) {
-            fetch(`http://99.79.47.21:8080/leagues/${leagueID}/divisions/${divisionID}/timeslots/${timeslotID}`, {
+            fetch(`${config.apiBaseUrl}/leagues/${leagueID}/divisions/${divisionID}/timeslots/${timeslotID}`, {
                 method: "DELETE",
             }).then((res) => {
                 alert("Timeslot deleted successfully.");
@@ -624,72 +734,36 @@ const TeamsView = () => {
         }
     };
 
-    // console.log("timeslots.length ");
-    // console.log(timeslots[0]);
-
-    const initialTeams = teams.map(team => ({
-        ...team,
-        gamesPlayed: 0,
-        weight: 0,
-        numGames: numberOfGames[team.id] || 0
-    }));
     const fetchLeagues = async () => {
-        console.log('Initial numberOfGames:', numberOfGames);
         let allGames = 0;
-
-        // Use Object.keys() to get all the keys (team IDs) and iterate over them
         const keys = Object.keys(numberOfGames);
-        console.log('Number of teams:', keys.length);
 
         keys.forEach(key => {
             const numGames = numberOfGames[key];
-            console.log(`Team ID: ${key}, Number of Games: ${numGames}`);
             allGames += numGames;
         });
 
         let numGames = 0;
-
         for (let p = 0; p < timeslots.length; p++) {
             if (timeslots[p].date !== "NaN-NaN-NaN") {
                 numGames++;
             }
         }
-        console.log("Timeslots");
-        console.log(timeslots);
-        console.log("numGames:", numGames);
-        console.log("Total games from numberOfGames:", allGames);
-
-        // if (allGames !== numGames * 2) {
-        //     alert("Incorrect Number of Games!");
-        //     return;
-        // }
 
         const updatedTeams = await Promise.all(teams.map(async (team) => {
             const totalGames = numberOfGames[team.id] || 0;
-
-            // // Fetch the updated weight from the server
-            // const response = await fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/team/${team.id}/weight`);
-            // const data = await response.json();
-            // const updatedWeight = data.weight;
-
-            // console.log(`Updated weight for ${team.teamName}: ${updatedWeight}`);
             console.log(`Total games for ${team.teamName}: ${totalGames}`);
-
-            // Return the updated team with new values
-            return { ...team, numGames: totalGames/*, weight: updatedWeight*/ };
+            return { ...team, numGames: totalGames };
         }));
 
-        await fetch(`http://99.79.47.21:8080/league/${leagueID}/Division/${divisionID}/teams`, {
+        await fetch(`${config.apiBaseUrl}/league/${leagueID}/Division/${divisionID}/teams`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(updatedTeams)
         });
 
-        console.log('Teams updated on the server');
-
-        console.log(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/schedule?freezeWeeks=${selectedWeeks}`);
-        fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/schedule?freezeWeeks=${selectedWeeks}`)
-            .then((res) => res.json(),)
+        fetch(`${config.apiBaseUrl}/league/${leagueID}/division/${divisionID}/schedule?freezeWeeks=${selectedWeeks}`)
+            .then((res) => res.json())
             .then((resp) => {
                 console.log('API response:', resp);
                 if (!resp || !Array.isArray(resp.schedule)) {
@@ -697,44 +771,67 @@ const TeamsView = () => {
                     return;
                 }
                 const updatedSchedule = resp.schedule;
-                console.log("Update Schedule");
-                console.log(updatedSchedule);
-                setGeneratedSchedule(updatedSchedule);
-                console.log("Inside Loop");
 
-                // Calculate and update the number of games played for each team
+                console.log("New Schedule");
+                console.log(updatedSchedule);
+
+                // Update schedule history, add the new schedule to the end, and limit to the last 5 schedules
+                // setScheduleHistory(scheduleHistory => {
+                //     const newHistory = [...scheduleHistory[0], updatedSchedule].slice(-5);
+                //     return newHistory;
+                // });
+
+                // Set the index to the last item in the array
+                // console.log("History " + scheduleHistory[0].length);
+                // setCurrentScheduleIndex(scheduleHistory[0].length);
+                // setSelectedScheduleIndex(scheduleHistory[0].length);
+
+
                 const updatedTeamsWithGamesPlayed = updatedTeams.map(team => {
                     let gamesPlayedCount = 0;
-
                     updatedSchedule.forEach(week => {
                         week.forEach(timeslot => {
                             if (timeslot.match) {
                                 const homeTeam = timeslot.match.homeTeam.teamName;
                                 const awayTeam = timeslot.match.awayTeam.teamName;
-
                                 if (homeTeam === team.teamName || awayTeam === team.teamName) {
                                     gamesPlayedCount++;
                                 }
                             }
                         });
                     });
-
                     return { ...team, gamesPlayed: gamesPlayedCount };
                 });
 
-                // Update the state with the new teams array
+                setGeneratedSchedule(updatedSchedule);
                 setTeams(updatedTeamsWithGamesPlayed);
-                console.log('Updated Teams:', updatedTeamsWithGamesPlayed);
+                setScheduleGenerated(true);
             })
             .catch((error) => {
                 console.error('Error fetching schedule:', error);
             });
 
-
+        // fetch(`${config.apiBaseUrl}/league/${leagueID}/division/${divisionID}/lastSchedule/${selectedScheduleIndex}`, {
+        //     method: "PUT",
+        //     headers: { "Content-Type": "application/json" },
+        //     body: JSON.stringify({ selectedScheduleIndex }) // Correctly format the body
+        // }).then((res) => {
+        //     if (!res.ok) {
+        //         throw new Error('Network response was not ok');
+        //     }
+        //     return res.json();
+        // }).catch((error) => {
+        //     console.error('Fetch error:', error);
+        // });
 
     };
 
+    // useEffect(() => {
+    //     console.log("Current Index " + currentScheduleIndex);
+    //     console.log("New selectedScheduleIndex", selectedScheduleIndex);
 
+
+    // }, [currentScheduleIndex, selectedScheduleIndex]); // Combine dependencies into a single array
 
 
     const toggleWeekSelection = (week) => {
@@ -824,19 +921,16 @@ const TeamsView = () => {
                     const homeTeam = scheduleMatch.match.homeTeam.teamName;
                     const awayTeam = scheduleMatch.match.awayTeam.teamName;
                     if (homeTeam !== awayTeam) {
-                      
-                        if(homeTeam != null && awayTeam != null)
-                        {
-                              console.log("Home Team " + homeTeam);
-                        console.log("Away Team " + awayTeam);
-                            if(matchupCounts[homeTeam] != null && matchupCounts[awayTeam] != null)
-                            {
+
+                        if (homeTeam != null && awayTeam != null) {
+
+                            if (matchupCounts[homeTeam] != null && matchupCounts[awayTeam] != null) {
                                 matchupCounts[homeTeam][awayTeam]++;
                                 matchupCounts[awayTeam][homeTeam]++;
                             }
-                            
+
                         }
-                       
+
                     }
                 });
             }
@@ -849,7 +943,7 @@ const TeamsView = () => {
 
     return (
         <div style={{ position: 'relative', alignItems: 'center', top: '20%', display: 'flex', flexDirection: 'column', textAlign: 'center' }}>
-            <img src={lugLogo} width={250} alt="Lug Logo" />
+            <img src={lugLogo} width={250} style={{ marginTop: '10px' }} />
             <h1 style={{ marginTop: '25px' }}>{divisionName} Teams</h1>
             <table>
                 <thead>
@@ -954,17 +1048,27 @@ const TeamsView = () => {
 
                     </div>
                     {generatedSchedule && generatedSchedule.length > 0 ? (
-                        generatedSchedule.map((_, weekIndex) => (
+                        <>
+                            {generatedSchedule.map((_, weekIndex) => (
+                                <button
+                                    key={weekIndex}
+                                    onClick={() => toggleWeekSelection(weekIndex + 1)}
+                                    style={buttonStyles(selectedWeeks.includes(weekIndex + 1))}
+                                >
+                                    Week {weekIndex + 1}
+                                </button>
+                            ))}
                             <button
-                                key={weekIndex}
-                                onClick={() => toggleWeekSelection(weekIndex + 1)}
-                                style={buttonStyles(selectedWeeks.includes(weekIndex + 1))}                        >
-                                Week {weekIndex + 1}
+                                onClick={() => setSelectedWeeks([])} // Add this line
+                                style={{ marginLeft: '10px', padding: '5px 10px', backgroundColor: 'red', color: 'white' }} // You can style this as you like
+                            >
+                                Clear Selection
                             </button>
-                        ))
+                        </>
                     ) : (
                         <div>No schedule available</div>
                     )}
+
                 </div>
             </div>
 
@@ -983,7 +1087,32 @@ const TeamsView = () => {
                             Cancel
                         </button>
                     )}
+                    <div>
+                        {/* <label htmlFor="scheduleSelector">Select a Schedule: </label>
+            {Array.isArray(scheduleHistory) && scheduleHistory.length > 0 ? (
+    <select
+        id="scheduleSelector"
+        value={selectedScheduleIndex ?? setSelectedScheduleIndex(0)}  // Use 0 as a fallback if selectedScheduleIndex is null
+        onChange={(e) => setSelectedScheduleIndex(Number(e.target.value))}
+        disabled={!scheduleGenerated || scheduleHistory.length == 0} // Disable only if scheduleGenerated is false or scheduleHistory is empty
+    >
+        {scheduleHistory.map((_, index) => (
+            <option key={index} value={index}>
+                Schedule {index + 1}
+            </option>
+        ))}
+    </select>
+) : (
+    <p>Loading schedules...</p> // Optionally display a loading message or indicator
+)}
 
+<div>
+    {Array.isArray(scheduleHistory) && scheduleHistory.length > 0 && selectedScheduleIndex !== null && (
+        <tableRef schedule={scheduleHistory[selectedScheduleIndex]} />
+    )}
+</div> */}
+
+                    </div>
                     <table className="scheduleTable" ref={tableRef}>
                         <thead>
                             <tr>
@@ -1048,40 +1177,223 @@ const TeamsView = () => {
                                                 </td>
                                                 <td>
                                                     {isEditing ? (
-                                                        <select
-                                                            value={timeslot.match ? timeslot.match.homeTeam.teamName : 'TBD'}
-                                                            onChange={(e) =>
-                                                                handleChange(weekIndex, timeslotIndex, 'homeTeam', e.target.value)
-                                                            }
-                                                        >
-                                                            {teams.map((team) => (
-                                                                <option key={team.id} value={team.teamName}>
-                                                                    {team.teamName}
-                                                                </option>
-                                                            ))}
-                                                        </select>
+                                                        <>
+                                                            <select
+                                                                value={timeslot.match ? timeslot.match.homeTeam.teamName : 'TBD'}
+                                                                onChange={(e) =>
+                                                                    handleChange(weekIndex, timeslotIndex, 'homeTeam', e.target.value)
+                                                                }
+                                                            >
+                                                                {teams.map((team) => (
+                                                                    <option key={team.id} value={team.teamName}>
+                                                                        {team.teamName}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+
+                                                            {/* Warning if the home team plays twice in the same week */}
+                                                            {timeslot.match && week.filter(
+                                                                ts => ts.match && (
+                                                                    ts.match.homeTeam.teamName === timeslot.match.homeTeam.teamName ||
+                                                                    ts.match.awayTeam.teamName === timeslot.match.homeTeam.teamName
+                                                                )
+                                                            ).length > 1 && (
+                                                                    <span
+                                                                        className="warning-icon"
+                                                                        onMouseEnter={() => setWarningMessage(`${timeslot.match.homeTeam.teamName} plays twice this week!`)}
+                                                                        onMouseLeave={() => setWarningMessage(null)}
+                                                                        style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                    >
+                                                                        ⚠️
+                                                                    </span>
+                                                                )}
+
+                                                            {/* Warning if the home team plays against itself */}
+                                                            {timeslot.match && timeslot.match.homeTeam.teamName === timeslot.match.awayTeam.teamName && (
+                                                                <span
+                                                                    className="warning-icon"
+                                                                    onMouseEnter={() => setWarningMessage(`${timeslot.match.homeTeam.teamName} is scheduled to play against itself!`)}
+                                                                    onMouseLeave={() => setWarningMessage(null)}
+                                                                    style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                >
+                                                                    ⚠️
+                                                                </span>
+                                                            )}
+
+                                                            {warningMessage && (
+                                                                <span className="warning-tooltip">
+                                                                    {warningMessage}
+                                                                </span>
+                                                            )}
+                                                        </>
                                                     ) : (
-                                                        timeslot.match ? timeslot.match.homeTeam.teamName : 'TBD'
+                                                        timeslot.match ? (
+                                                            <>
+                                                                {timeslot.match.homeTeam.teamName}
+
+                                                                {/* Warning if the home team plays twice in the same week */}
+                                                                {week.filter(
+                                                                    ts => ts.match && (
+                                                                        ts.match.homeTeam.teamName === timeslot.match.homeTeam.teamName ||
+                                                                        ts.match.awayTeam.teamName === timeslot.match.homeTeam.teamName
+                                                                    )
+                                                                ).length > 1 && (
+                                                                        <span
+                                                                            className="warning-icon"
+                                                                            onMouseEnter={() => setWarningMessage(`${timeslot.match.homeTeam.teamName} plays twice this week!`)}
+                                                                            onMouseLeave={() => setWarningMessage(null)}
+                                                                            style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                        >
+                                                                            ⚠️
+                                                                        </span>
+                                                                    )}
+
+                                                                {/* Warning if the home team plays against itself */}
+                                                                {timeslot.match.homeTeam.teamName === timeslot.match.awayTeam.teamName && (
+                                                                    <span
+                                                                        className="warning-icon"
+                                                                        onMouseEnter={() => setWarningMessage(`${timeslot.match.homeTeam.teamName} is scheduled to play against itself!`)}
+                                                                        onMouseLeave={() => setWarningMessage(null)}
+                                                                        style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                    >
+                                                                        ⚠️
+                                                                    </span>
+                                                                )}
+
+                                                                {warningMessage && (
+                                                                    <span className="warning-tooltip">
+                                                                        {warningMessage}
+                                                                    </span>
+                                                                )}
+                                                            </>
+                                                        ) : 'TBD'
                                                     )}
                                                 </td>
+
+
                                                 <td>
                                                     {isEditing ? (
-                                                        <select
-                                                            value={timeslot.match ? timeslot.match.awayTeam.teamName : 'TBD'}
-                                                            onChange={(e) =>
-                                                                handleChange(weekIndex, timeslotIndex, 'awayTeam', e.target.value)
-                                                            }
-                                                        >
-                                                            {teams.map((team) => (
-                                                                <option key={team.id} value={team.teamName}>
-                                                                    {team.teamName}
-                                                                </option>
-                                                            ))}
-                                                        </select>
+                                                        <>
+                                                            <select
+                                                                value={timeslot.match ? timeslot.match.awayTeam.teamName : 'TBD'}
+                                                                onChange={(e) =>
+                                                                    handleChange(weekIndex, timeslotIndex, 'awayTeam', e.target.value)
+                                                                }
+                                                            >
+                                                                {teams.map((team) => (
+                                                                    <option key={team.id} value={team.teamName}>
+                                                                        {team.teamName}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+
+                                                            {/* Check for team playing against itself */}
+                                                            {timeslot.match && timeslot.match.homeTeam.teamName === timeslot.match.awayTeam.teamName && (
+                                                                <span
+                                                                    className="warning-icon"
+                                                                    onMouseEnter={() => setWarningMessage(`${timeslot.match.homeTeam.teamName} is scheduled to play against itself!`)}
+                                                                    onMouseLeave={() => setWarningMessage(null)}
+                                                                    style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                >
+                                                                    ⚠️
+                                                                </span>
+                                                            )}
+
+                                                            {/* Check for team playing twice in the same week */}
+                                                            {timeslot.match && week.filter(
+                                                                ts => ts.match && (
+                                                                    ts.match.homeTeam.teamName === timeslot.match.awayTeam.teamName ||
+                                                                    ts.match.awayTeam.teamName === timeslot.match.awayTeam.teamName
+                                                                )
+                                                            ).length > 1 && (
+                                                                    <span
+                                                                        className="warning-icon"
+                                                                        onMouseEnter={() => setWarningMessage(`${timeslot.match.awayTeam.teamName} plays twice this week!`)}
+                                                                        onMouseLeave={() => setWarningMessage(null)}
+                                                                        style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                    >
+                                                                        ⚠️
+                                                                    </span>
+                                                                )}
+
+                                                            {/* Check for team playing twice in the same day */}
+                                                            {timeslot.match && week.filter(
+                                                                ts => ts.match && ts.date === timeslot.date && (
+                                                                    ts.match.homeTeam.teamName === timeslot.match.awayTeam.teamName ||
+                                                                    ts.match.awayTeam.teamName === timeslot.match.awayTeam.teamName
+                                                                )
+                                                            ).length > 1 && (
+                                                                    <span
+                                                                        className="warning-icon"
+                                                                        onMouseEnter={() => setWarningMessage(`${timeslot.match.awayTeam.teamName} plays twice on ${timeslot.date}!`)}
+                                                                        onMouseLeave={() => setWarningMessage(null)}
+                                                                        style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                    >
+                                                                        ⚠️
+                                                                    </span>
+                                                                )}
+
+                                                            {warningMessage && (
+                                                                <span className="warning-tooltip">
+                                                                    {warningMessage}
+                                                                </span>
+                                                            )}
+                                                        </>
                                                     ) : (
-                                                        timeslot.match ? timeslot.match.awayTeam.teamName : 'TBD'
+                                                        timeslot.match ? (
+                                                            <>
+                                                                {timeslot.match.awayTeam.teamName}
+                                                                {/* Repeat the same checks here if you want the warning in view mode */}
+                                                                {timeslot.match.homeTeam.teamName === timeslot.match.awayTeam.teamName && (
+                                                                    <span
+                                                                        className="warning-icon"
+                                                                        onMouseEnter={() => setWarningMessage(`${timeslot.match.homeTeam.teamName} is scheduled to play against itself!`)}
+                                                                        onMouseLeave={() => setWarningMessage(null)}
+                                                                        style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                    >
+                                                                        ⚠️
+                                                                    </span>
+                                                                )}
+                                                                {week.filter(
+                                                                    ts => ts.match && (
+                                                                        ts.match.homeTeam.teamName === timeslot.match.awayTeam.teamName ||
+                                                                        ts.match.awayTeam.teamName === timeslot.match.awayTeam.teamName
+                                                                    )
+                                                                ).length > 1 && (
+                                                                        <span
+                                                                            className="warning-icon"
+                                                                            onMouseEnter={() => setWarningMessage(`${timeslot.match.awayTeam.teamName} plays twice this week!`)}
+                                                                            onMouseLeave={() => setWarningMessage(null)}
+                                                                            style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                        >
+                                                                            ⚠️
+                                                                        </span>
+                                                                    )}
+                                                                {week.filter(
+                                                                    ts => ts.match && ts.date === timeslot.date && (
+                                                                        ts.match.homeTeam.teamName === timeslot.match.awayTeam.teamName ||
+                                                                        ts.match.awayTeam.teamName === timeslot.match.awayTeam.teamName
+                                                                    )
+                                                                ).length > 1 && (
+                                                                        <span
+                                                                            className="warning-icon"
+                                                                            onMouseEnter={() => setWarningMessage(`${timeslot.match.awayTeam.teamName} plays twice on ${timeslot.date}!`)}
+                                                                            onMouseLeave={() => setWarningMessage(null)}
+                                                                            style={{ marginLeft: '5px', color: 'red', cursor: 'pointer' }}
+                                                                        >
+                                                                            ⚠️
+                                                                        </span>
+                                                                    )}
+                                                                {warningMessage && (
+                                                                    <span className="warning-tooltip">
+                                                                        {warningMessage}
+                                                                    </span>
+                                                                )}
+                                                            </>
+                                                        ) : 'TBD'
                                                     )}
                                                 </td>
+
                                                 <td>
                                                     {isEditing ? (
                                                         <input
@@ -1151,6 +1463,7 @@ const TeamsView = () => {
                     </table>
                     <div>
                         <h2>Schedule Analysis</h2>
+                        <h4>Note: Refresh the page to update the table</h4>
                         <table border="1">
                             <thead>
                                 <tr>
@@ -1170,14 +1483,16 @@ const TeamsView = () => {
                                         {additionalDataHeaders.map((header, index) => (
                                             <td>{trackTimeslotData(team, header)}</td>
                                         ))}
-                                        <div>
+                                        <td>
+                                            <div>
 
-                                            <h10 className='scheduleAnalysisElement'>Excellent Schedule</h10>
-                                            <td className="scheduleAnalysisElement">
-                                                <WeightNumberLine value={team.weight} min={0} max={1} />
-                                            </td>
-                                            <h10 className='scheduleAnalysisElement'>Fair Schedule</h10>
-                                        </div>
+                                                <h10 className='scheduleAnalysisElement'>Excellent Schedule</h10>
+                                                <td className="scheduleAnalysisElement">
+                                                    <WeightNumberLine value={team.weight} min={0} max={1} />
+                                                </td>
+                                                <h10 className='scheduleAnalysisElement'>Fair Schedule</h10>
+                                            </div>
+                                        </td>
 
 
                                     </tr>

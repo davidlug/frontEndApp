@@ -2,6 +2,8 @@ import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import DatePicker from "react-datepicker";
 import TimePicker from 'react-time-picker';
+import config from './config';
+
 
 import "react-datepicker/dist/react-datepicker.css";
 import 'react-time-picker/dist/TimePicker.css';
@@ -65,7 +67,7 @@ const TimeSlotCreate = () => {
 
         const timeslotData = { week, date: formattedDate, startTime, endTime, facility, rink, additionalData, extra };
         console.log("Submitted data: ", timeslotData);
-        fetch(`http://99.79.47.21:8080/league/${leagueID}/division/${divisionID}/timeslot`, {
+        fetch(`${config.apiBaseUrl}/league/${leagueID}/division/${divisionID}/timeslot`, {
             method: "POST",
             headers: { "Content-type": "application/json" },
             body: JSON.stringify(timeslotData)
